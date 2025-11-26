@@ -1,0 +1,52 @@
+:root{
+  --bg:#0b1020;
+  --panel:#0f1724;
+  --muted:#98a0b3;
+  --accent:#1dd3a7;
+  --accent-2:#6cffb4;
+  --danger:#ff6b6b;
+  --glass: rgba(255,255,255,0.03);
+  --card-radius:12px;
+  --gap:16px;
+  --max-width:1100px;
+}
+html,body{height:100%; margin:0; font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; background:linear-gradient(180deg,#061024 0%, #071226 100%); color:#e6eef6;}
+.container{max-width:var(--max-width); margin:20px auto; padding:18px; box-sizing:border-box;}
+header{display:flex;align-items:center;gap:12px;margin-bottom:18px;}
+.logo{width:56px;height:56px;border-radius:10px;background:linear-gradient(135deg,#071e1a,#0b3940);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:22px;color:var(--accent);}
+h1{margin:0;font-size:20px;}
+.topbar{display:flex;gap:12px;align-items:center;flex-wrap:wrap;}
+.searchWrap{flex:1;min-width:260px;position:relative;}
+input.search{width:100%;padding:12px 14px;border-radius:10px;border:1px solid rgba(255,255,255,0.06);background:var(--glass);color:inherit;font-size:15px;outline:none;}
+.suggestions{position:absolute;left:0;right:0;top:calc(100% + 6px);background:linear-gradient(180deg,#08182a, #07121a);border-radius:8px;padding:8px;box-shadow:0 6px 24px rgba(0,0,0,0.6);z-index:30;max-height:320px;overflow:auto;border:1px solid rgba(255,255,255,0.03);}
+.suggestions button{display:flex;align-items:center;justify-content:space-between;width:100%;padding:8px 10px;border-radius:6px;border:none;background:transparent;color:var(--muted);cursor:pointer;text-align:left;}
+.suggestions button:hover{background:rgba(255,255,255,0.02);color:#fff;}
+.meta{font-size:12px;color:var(--muted)}
+.controls{display:flex;gap:8px;align-items:center;}
+select, button.primary{padding:10px 12px;border-radius:10px;border:1px solid rgba(255,255,255,0.06);background:linear-gradient(180deg,#0b2833,#071921);color:var(--accent-2);font-weight:600;cursor:pointer;}
+button.ghost{background:transparent;border:1px dashed rgba(255,255,255,0.04);color:var(--muted);padding:8px 10px;border-radius:10px;}
+main{display:grid;grid-template-columns:1fr 360px;gap:var(--gap);align-items:start;}
+@media(max-width:980px){ main{grid-template-columns:1fr; } .controls{width:100%;justify-content:flex-start}}
+.card{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); border-radius:var(--card-radius); padding:14px; box-shadow:0 6px 22px rgba(4,8,12,0.6); border:1px solid rgba(255,255,255,0.02);}
+.chartWrap{height:420px;padding:8px;}
+.small{font-size:13px;color:var(--muted)}
+.kpis{display:flex;gap:10px;margin-bottom:10px;flex-wrap:wrap}
+.kpi{background:rgba(255,255,255,0.02);padding:8px;border-radius:8px;min-width:110px;}
+.kpi .v{font-weight:700;color:var(--accent);font-size:18px}
+.side{display:flex;flex-direction:column;gap:12px;}
+.sentBox{display:flex;flex-direction:column;gap:8px;}
+textarea{width:100%;min-height:80px;background:transparent;border-radius:8px;padding:10px;border:1px solid rgba(255,255,255,0.04);color:inherit;font-size:14px;resize:vertical}
+.btnRow{display:flex;gap:8px}
+.muted{color:var(--muted);font-size:13px}
+footer{margin-top:20px;color:var(--muted);font-size:13px;text-align:center}
+.loader{display:inline-block;width:14px;height:14px;border-radius:50%;border:2px solid rgba(255,255,255,0.08);border-top-color:var(--accent);animation:spin 1s linear infinite;margin-left:8px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.cmpBox{display:flex;gap:8px;align-items:center}
+.notice{display:block;padding:10px;border-radius:8px;background:rgba(255,255,255,0.02);color:var(--muted)}
+.indicatorsGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+@media(max-width:980px){ .indicatorsGrid{grid-template-columns:1fr} }
+.indicatorHeader{display:flex;justify-content:space-between;align-items:center}
+.smallChart{height:90px !important}
+.compareInput{padding:10px;border-radius:10px;background:transparent;border:1px solid rgba(255,255,255,0.04);color:inherit}
+.howList{padding-left:18px;margin:8px 0 0 0;color:var(--muted);font-size:13px}
+.sentimentHeader{display:flex;justify-content:space-between;align-items:center}
