@@ -266,6 +266,12 @@ def api_compare():
         traceback.print_exc()
         return jsonify({"error": str(e), "trace": trace_to_string()}), 400
 
+# app.py  (add this)
+@app.route("/compare")
+def compare_page():
+    """Renders the compare UI page."""
+    return render_template("compare.html")
+
 
 if __name__ == "__main__":
     app.run(debug=True, host="127.0.0.1", port=5000)

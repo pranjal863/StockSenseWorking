@@ -39,7 +39,7 @@ def load_tickers_csv(path="tickers.csv"):
 
 _TICKER_DB = load_tickers_csv()
 
-def suggest_tickers(query, max_suggestions=8):
+def suggest_tickers(query, max_suggestions=20):
     """
     Fuzzy search suggestions using difflib.get_close_matches on symbol and name.
     Returns list of dicts: {"symbol":..., "name":...}
