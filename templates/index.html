@@ -1,30 +1,42 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Stock Dashboard — Demo</title>
-
-  <!-- Chart.js CDN -->
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Stock Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-  <!-- local CSS -->
-  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+  <!-- Use absolute static paths so Flask serves them correctly -->
+  <link rel="stylesheet" href="/static/styles.css">
 </head>
 <body>
-  <div class="container">
-    <header>
-      <div class="logo">STK</div>
-      <div>
-        <h1>Stocks Dashboard — Demo</h1>
-        <div class="small muted">Search, indicators, prediction confidence & sentiment — demo backend</div>
+  <nav class="navbar">
+    <div class="nav-container">
+      <div class="nav-brand">
+        <div class="nav-logo">STK</div>
+        <span class="nav-title">StockDash</span>
       </div>
-    </header>
+      <div class="nav-links">
+        <a href="#" class="nav-link active">Dashboard</a>
+        <a href="#" class="nav-link">Markets</a>
+        <a href="#" class="nav-link">Analysis</a>
+        <a href="#" class="nav-link">Settings</a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container">
+    <section class="hero">
+      <h1 class="hero-title">Stock Dashboard</h1>
+      <p class="hero-subtitle">Real-time market data, technical indicators, and sentiment analysis</p>
+    </section>
 
     <div class="topbar">
       <div class="searchWrap card">
-        <input id="search" class="search" placeholder="Search company (e.g., google, amazon) — press Enter to search" autocomplete="off" />
-        <div id="suggestions" class="suggestions" style="display:none"></div>
+        <input id="search" class="search" placeholder="Search company (e.g., google, amazon) — press Enter" autocomplete="off" />
+        <div id="suggestions" class="suggestions"></div>
       </div>
 
       <div class="controls">
@@ -42,35 +54,53 @@
         </select>
 
         <div class="cmpBox">
-          <input id="compareTicker" placeholder="Compare ticker (e.g., MSFT)" class="compareInput" />
+          <input id="compareTicker" placeholder="Compare (e.g., MSFT)" class="compareInput" />
           <button id="btnCompare" class="ghost">Compare</button>
         </div>
 
-        <button id="btnFetch" class="primary">Fetch</button>
+        <button id="btnFetch" class="primary">Fetch Data</button>
       </div>
     </div>
 
     <main>
-      <div>
-        <div class="card">
+      <div class="main-content">
+        <div class="card main-card">
           <div class="kpis">
-            <div class="kpi"><div class="small">Ticker</div><div id="k_ticker" class="v">—</div></div>
-            <div class="kpi"><div class="small">Last Close</div><div id="k_close" class="v">—</div></div>
-            <div class="kpi"><div class="small">Predicted</div><div id="k_pred" class="v">—</div></div>
-            <div class="kpi"><div class="small">Confidence</div><div id="k_conf" class="v">—</div></div>
+            <div class="kpi">
+              <div class="kpi-label">Ticker</div>
+              <div id="k_ticker" class="kpi-value">—</div>
+            </div>
+            <div class="kpi">
+              <div class="kpi-label">Last Close</div>
+              <div id="k_close" class="kpi-value">—</div>
+            </div>
+            <div class="kpi">
+              <div class="kpi-label">Predicted</div>
+              <div id="k_pred" class="kpi-value">—</div>
+            </div>
+            <div class="kpi">
+              <div class="kpi-label">Confidence</div>
+              <div id="k_conf" class="kpi-value">—</div>
+            </div>
           </div>
 
-          <div class="chartWrap card" style="padding:10px">
-            <canvas id="priceChart" style="width:100%;height:100%"></canvas>
+          <div class="chartWrap">
+            <canvas id="priceChart"></canvas>
           </div>
 
           <div class="indicatorsGrid">
-            <div class="card small">
-              <div class="indicatorHeader"><strong>RSI (14)</strong><div id="rsiVal" class="muted">—</div></div>
+            <div class="card indicator-card">
+              <div class="indicatorHeader">
+                <strong>RSI (14)</strong>
+                <div id="rsiVal" class="indicator-value">—</div>
+              </div>
               <canvas id="rsiChart" class="smallChart"></canvas>
             </div>
-            <div class="card small">
-              <div class="indicatorHeader"><strong>MACD</strong><div id="macdVal" class="muted">—</div></div>
+            <div class="card indicator-card">
+              <div class="indicatorHeader">
+                <strong>MACD</strong>
+                <div id="macdVal" class="indicator-value">—</div>
+              </div>
               <canvas id="macdChart" class="smallChart"></canvas>
             </div>
           </div>
@@ -79,9 +109,9 @@
 
       <aside class="side">
         <div class="card">
-          <div class="sentimentHeader">
-            <div><strong>Sentiment Analyzer</strong></div>
-            <div class="small muted">Paste headlines / tweets</div>
+          <div class="card-header">
+            <strong>Sentiment Analyzer</strong>
+            <span class="card-subtitle">Paste headlines or tweets</span>
           </div>
           <div class="sentBox">
             <textarea id="sentInput" placeholder="Paste headlines / tweets (one per line)"></textarea>
@@ -94,15 +124,17 @@
         </div>
 
         <div class="card">
-          <div class="compareHeader">
-            <div><strong>Compare Summary</strong></div>
-            <div class="small muted">Quick % change</div>
+          <div class="card-header">
+            <strong>Compare Summary</strong>
+            <span class="card-subtitle">Quick % change</span>
           </div>
-          <div id="compareResult" class="muted notice">No comparison yet</div>
+          <div id="compareResult" class="notice">No comparison yet</div>
         </div>
 
-        <div class="card small">
-          <strong>How it works</strong>
+        <div class="card">
+          <div class="card-header">
+            <strong>How it works</strong>
+          </div>
           <ol class="howList">
             <li>Search and choose a ticker</li>
             <li>Click Fetch to load price & indicators</li>
@@ -110,14 +142,13 @@
             <li>Use Sentiment to analyze headlines/tweets</li>
           </ol>
         </div>
-
       </aside>
     </main>
 
     <footer>Demo — data from your backend (yfinance / AlphaVantage). This is not investment advice.</footer>
   </div>
 
-  <!-- local JS -->
-  <script src="{{ url_for('static', filename='main.js') }}"></script>
+  <!-- load the client script from static (no module import) -->
+  <script src="/static/main.js"></script>
 </body>
 </html>
