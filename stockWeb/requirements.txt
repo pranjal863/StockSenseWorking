@@ -1,0 +1,10 @@
+Flask
+yfinance
+pandas
+numpy
+scikit-learn
+ta
+nltk
+vaderSentiment
+python-dotenv
+joblib

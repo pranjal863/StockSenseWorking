@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StockSense - Modern Stock Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="../static/dashboard_styles.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav>
+        <div class="logo">
+            <i class="fas fa-chart-line"></i>
+            StockSense
+        </div>
+        <ul class="nav-links">
+            <li><a href="#features">Features</a></li>
+            <li><a href="#about">About</a></li>
+            <li><button class="theme-toggle" id="themeToggle" title="Toggle light/dark mode">
+                <i class="fas fa-moon"></i>
+            </button></li>
+        </ul>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-content">
+            <span class="badge">Professional Trading Intelligence</span>
+            <h1>Real-Time Stock Intelligence at Your Fingertips</h1>
+            <p class="description">Make smarter investment decisions with real-time market data, AI-powered insights, and professional-grade analytics. Join thousands of traders already using StockSense.</p>
+            <div class="hero-buttons">
+                <a href="{{ url_for('signup') }}" class="primary-btn">Start trading today</a>
+            </div>
+        </div>
+
+        <!-- Scrollable Stats Section -->
+        <div class="scrollable-stats">
+            <div class="stats-track">
+                <div class="stat-card">
+                    <div class="stat-number">50+</div>
+                    <div class="stat-label">Active Traders</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">150+</div>
+                    <div class="stat-label">Global Markets</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">24/7</div>
+                    <div class="stat-label">Market Access</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">$2Th+</div>
+                    <div class="stat-label">Trading Volume</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">50+</div>
+                    <div class="stat-label">Active Traders</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">150+</div>
+                    <div class="stat-label">Global Markets</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features" id="features">
+        <h2 class="section-title">Powerful Features</h2>
+        <p class="section-subtitle">Everything you need to master the markets</p>
+        
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-chart-area"></i>
+                </div>
+                <h3 class="feature-title">Real-Time Charts</h3>
+                <p class="feature-description">Advanced charting tools with technical indicators and pattern recognition. Analyze price movements instantly.</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-brain"></i>
+                </div>
+                <h3 class="feature-title">AI Insights</h3>
+                <p class="feature-description">Machine learning algorithms predict market trends and identify opportunities before they happen.</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-bell"></i>
+                </div>
+                <h3 class="feature-title">Smart Alerts</h3>
+                <p class="feature-description">Custom alerts for price movements, technical signals, and market events. Never miss an opportunity.</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-briefcase"></i>
+                </div>
+                <h3 class="feature-title">Portfolio Management</h3>
+                <p class="feature-description">Track your investments with detailed performance metrics and risk analysis tools.</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-chart-bar"></i>
+                </div>
+                <h3 class="feature-title">Advanced Analytics</h3>
+                <p class="feature-description">Deep dive into market data with professional-grade analytics and backtesting tools.</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-lock"></i>
+                </div>
+                <h3 class="feature-title">Bank-Level Security</h3>
+                <p class="feature-description">Your data is protected with military-grade encryption and enterprise security standards.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Callout Section -->
+    <section class="callout-section">
+        <div class="callout-content">
+            <h2>Why StockSense?</h2>
+            <div class="callout-grid">
+                <div class="callout-item">
+                    <div class="callout-icon">
+                        <i class="fas fa-bolt"></i>
+                    </div>
+                    <h3>Lightning Fast</h3>
+                    <p>Sub-millisecond data latency for instant market insights and rapid decision-making.</p>
+                </div>
+                <div class="callout-item">
+                    <div class="callout-icon">
+                        <i class="fas fa-bullseye"></i>
+                    </div>
+                    <h3>Precision Focused</h3>
+                    <p>Laser-focused tools designed specifically for serious traders and investors.</p>
+                </div>
+                <div class="callout-item">
+                    <div class="callout-icon">
+                        <i class="fas fa-rocket"></i>
+                    </div>
+                    <h3>Always Innovating</h3>
+                    <p>Continuous updates with new features and market intelligence capabilities.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- About section added -->
+    <section class="about-section" id="about">
+        <div class="about-container">
+            <h2>About StockSense</h2>
+            <div class="about-grid">
+                <div class="about-card">
+                    <i class="fas fa-target"></i>
+                    <h3>Our Mission</h3>
+                    <p>Democratize access to professional-grade trading tools and market intelligence for traders of all levels, empowering informed decision-making.</p>
+                </div>
+                <div class="about-card">
+                    <i class="fas fa-eye"></i>
+                    <h3>Our Vision</h3>
+                    <p>To become the leading platform where traders gain competitive advantages through cutting-edge technology and real-time market insights.</p>
+                </div>
+                <div class="about-card">
+                    <i class="fas fa-star"></i>
+                    <h3>Our Values</h3>
+                    <p>Transparency, innovation, and reliability. We're committed to providing trustworthy tools backed by continuous research and development.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-links">
+            <a href="#">Privacy Policy</a>
+            <a href="#">Terms of Service</a>
+            <a href="#">Contact</a>
+        </div>
+        <p>&copy; 2025 StockSense. All rights reserved.</p>
+    </footer>
+
+    <script src="../static/theme.js"></script>
+    <script src="../static/dashboard_script.js"></script>
+</body>
+</html>
