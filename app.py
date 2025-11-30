@@ -9,32 +9,35 @@ import os
 import requests
 import pandas as pd
 import numpy as np
-import json
-import sys
 import io
 
-# Load .env first so os.getenv() reads values from .env
+# load .env
 load_dotenv()
-
 ALPHAVANTAGE_KEY = os.getenv("ALPHAVANTAGE_KEY")
+NEWSAPI_KEY = os.getenv("NEWSAPI_KEY")  # set in your .env if you want news
 
 app = Flask(__name__, static_folder="static", template_folder="templates")
 analyzer = SentimentIntensityAnalyzer()
 
-
 def trace_to_string():
-    """Return a short traceback string for returning in JSON (helpful for debugging)."""
     buf = io.StringIO()
     traceback.print_exc(file=buf)
     txt = buf.getvalue()
-    # shorten to last ~10 lines to avoid huge responses
     lines = txt.strip().splitlines()
     return "\n".join(lines[-12:])
-
 
 @app.route("/")
 def home():
     return render_template("index.html")
+
+# in app.py: replace the compare_page route with this
+@app.route("/compare")
+def compare_page():
+    """
+    Serve a dedicated compare page which loads the static/compare.js script.
+    The compare.js file should implement the UI & behavior (fetch /api/compare).
+    """
+    return render_template("compare.html")
 
 
 @app.route("/api/search")
@@ -48,83 +51,21 @@ def api_search():
         traceback.print_exc()
         return jsonify({"error": str(e), "trace": trace_to_string()}), 500
 
-
-@app.route("/api/alpha/<symbol>")
-def api_alpha(symbol):
-    if not ALPHAVANTAGE_KEY:
-        return jsonify({"error": "AlphaVantage API key not configured. Set ALPHAVANTAGE_KEY in .env"}), 500
-    try:
-        url = f"https://www.alphavantage.co/query?function=OVERVIEW&symbol={symbol}&apikey={ALPHAVANTAGE_KEY}"
-        resp = requests.get(url, timeout=15)
-        data = resp.json()
-        if "Note" in data:
-            return jsonify({"error": data["Note"]}), 429
-        if "Information" in data:
-            return jsonify({"error": data["Information"]}), 400
-        if not data or data == {}:
-            return jsonify({"error": f"No overview data for symbol {symbol} (AlphaVantage returned empty)."}), 404
-        return jsonify(data)
-    except requests.exceptions.RequestException as e:
-        return jsonify({"error": "Network error contacting AlphaVantage", "detail": str(e), "trace": trace_to_string()}), 502
-    except Exception as e:
-        traceback.print_exc()
-        return jsonify({"error": str(e), "trace": trace_to_string()}), 500
-
-
 @app.route("/api/history/<symbol>")
 def api_history(symbol):
-    """
-    Robust history endpoint:
-     - ensures 'date' column exists and is ISO string
-     - replaces NaNs with null for JSON
-     - returns clear trace on error
-    """
-    period = request.args.get("period", "1y")
+    period = request.args.get("period", "1mo")
     interval = request.args.get("interval", "1d")
     try:
-        # 1) fetch raw price data (yfinance)
         df = fetch_price_history(symbol, period=period, interval=interval)
-
-        # 2) compute indicators (util_data)
-        ind = compute_indicators(df)  # returns DataFrame with date column or datetime index
-
-        # 3) ensure 'date' column exists - normalize possible names or index
+        ind = compute_indicators(df)
         if 'date' not in ind.columns:
-            # common candidates to rename
-            for candidate in ('Date', 'date_time', 'datetime', 'index'):
-                if candidate in ind.columns:
-                    ind = ind.rename(columns={candidate: 'date'})
-                    break
-            else:
-                # try reset_index (index usually contains datetime)
-                ind = ind.reset_index()
-                # rename first datetime-like column to 'date'
-                if 'date' not in ind.columns:
-                    for c in ind.columns:
-                        try:
-                            if pd.api.types.is_datetime64_any_dtype(ind[c]):
-                                ind = ind.rename(columns={c: 'date'})
-                                break
-                        except Exception:
-                            continue
-                    # fallback: just rename first column to date
-                    if 'date' not in ind.columns and len(ind.columns) > 0:
-                        ind = ind.rename(columns={ind.columns[0]: 'date'})
-
-        # 4) coerce date -> datetime -> ISO string
+            ind = ind.reset_index().rename(columns={ind.columns[0]:'date'})
         try:
-            ind['date'] = pd.to_datetime(ind['date'])
-            ind['date'] = ind['date'].dt.strftime('%Y-%m-%dT%H:%M:%S')
+            ind['date'] = pd.to_datetime(ind['date']).dt.strftime('%Y-%m-%dT%H:%M:%S')
         except Exception:
-            # If conversion fails, convert to string as fallback
             ind['date'] = ind['date'].astype(str)
-
-        # 5) convert numpy types and replace NaN with None for JSON
-        # Use DataFrame.where to replace NaN with None (np.nan -> None)
         ind = ind.replace({np.nan: None})
-        # also ensure native Python types when producing dicts
         records = ind.to_dict(orient="records")
-        # force all numpy numbers to python numbers
         def normalize(obj):
             if isinstance(obj, dict):
                 return {k: normalize(v) for k, v in obj.items()}
@@ -136,16 +77,10 @@ def api_history(symbol):
                 return bool(obj)
             return obj
         records = [normalize(r) for r in records]
-
         return jsonify({"symbol": symbol, "history": records})
     except Exception as e:
         traceback.print_exc()
-        return jsonify({
-            "error": "Failed to fetch/process history",
-            "message": str(e),
-            "trace": trace_to_string()
-        }), 400
-
+        return jsonify({"error":"Failed to fetch/process history","message":str(e),"trace":trace_to_string()}), 400
 
 @app.route("/api/predict/<symbol>", methods=["GET"])
 def api_predict(symbol):
@@ -154,27 +89,20 @@ def api_predict(symbol):
     try:
         df = fetch_price_history(symbol, period=period, interval=interval)
         df_ind = compute_indicators(df)
-
-        # model expects 'date' column present (prepare_features checks as well)
         if 'date' not in df_ind.columns:
-            df_ind = df_ind.reset_index().rename(columns={df_ind.columns[0]: 'date'})
-
-        # call the model trainer/predictor
+            df_ind = df_ind.reset_index().rename(columns={df_ind.columns[0]:'date'})
         result, model, features = train_predict_model(df_ind, n_lags=10)
         if isinstance(result, dict) and "error" in result:
-            return jsonify({"error": "model_error", "detail": result.get("error")}), 400
-
+            return jsonify({"error":"model_error","detail": result.get("error")}), 400
         last_close = None
         try:
             last_close = float(df_ind['Close'].iloc[-1])
         except Exception:
             last_close = None
-
         predicted = float(result['prediction'])
         pct_change = None
         if last_close:
             pct_change = (predicted - last_close) / last_close * 100.0
-
         out = {
             "symbol": symbol,
             "last_close": last_close,
@@ -186,8 +114,7 @@ def api_predict(symbol):
         return jsonify(out)
     except Exception as e:
         traceback.print_exc()
-        return jsonify({"error": "Failed to predict", "message": str(e), "trace": trace_to_string()}), 400
-
+        return jsonify({"error":"Failed to predict","message":str(e),"trace":trace_to_string()}), 400
 
 @app.route("/api/sentiment", methods=["POST"])
 def api_sentiment():
@@ -195,42 +122,35 @@ def api_sentiment():
     headlines = data.get("headlines", [])
     tweets = data.get("tweets", [])
     announcements = data.get("announcements", [])
-
     def score_list(items):
         scores = []
         for t in items:
             v = analyzer.polarity_scores(str(t))
             scores.append(v)
         if not scores:
-            return {"count": 0, "avg_compound": 0, "pos": 0, "neg": 0, "neu": 0}
+            return {"count":0,"avg_compound":0,"pos":0,"neg":0,"neu":0}
         compounds = [s['compound'] for s in scores]
         return {
             "count": len(scores),
-            "avg_compound": float(sum(compounds) / len(compounds)),
-            "pos": float(sum(s['pos'] for s in scores) / len(scores)),
-            "neg": float(sum(s['neg'] for s in scores) / len(scores)),
-            "neu": float(sum(s['neu'] for s in scores) / len(scores))
+            "avg_compound": float(sum(compounds)/len(compounds)),
+            "pos": float(sum(s['pos'] for s in scores)/len(scores)),
+            "neg": float(sum(s['neg'] for s in scores)/len(scores)),
+            "neu": float(sum(s['neu'] for s in scores)/len(scores))
         }
-
     try:
         hscore = score_list(headlines)
         tscore = score_list(tweets)
         ascore = score_list(announcements)
-
         total_count = hscore["count"] + tscore["count"] + ascore["count"]
         if total_count == 0:
-            overall = {"compound": 0}
+            overall = {"compound":0}
         else:
-            overall_comp = (hscore["avg_compound"] * hscore["count"] + tscore["avg_compound"] * tscore["count"] + ascore["avg_compound"] * ascore["count"]) / total_count
+            overall_comp = (hscore["avg_compound"]*hscore["count"] + tscore["avg_compound"]*tscore["count"] + ascore["avg_compound"]*ascore["count"]) / total_count
             overall = {"compound": overall_comp}
-
         comp = overall["compound"]
         label = "neutral"
-        if comp >= 0.05:
-            label = "positive"
-        elif comp <= -0.05:
-            label = "negative"
-
+        if comp >= 0.05: label = "positive"
+        elif comp <= -0.05: label = "negative"
         return jsonify({
             "headline": hscore,
             "tweets": tscore,
@@ -240,8 +160,7 @@ def api_sentiment():
         })
     except Exception as e:
         traceback.print_exc()
-        return jsonify({"error": "Failed to analyze sentiment", "message": str(e), "trace": trace_to_string()}), 400
-
+        return jsonify({"error":"Failed to analyze sentiment","message":str(e),"trace":trace_to_string()}), 400
 
 @app.route("/api/compare")
 def api_compare():
@@ -249,14 +168,14 @@ def api_compare():
     right = request.args.get("right")
     period = request.args.get("period", "1y")
     if not left or not right:
-        return jsonify({"error": "provide left and right tickers"}), 400
+        return jsonify({"error":"provide left and right tickers"}), 400
     try:
         dleft = fetch_price_history(left, period=period)
         dright = fetch_price_history(right, period=period)
         def summarize(df):
             start = df['Close'].iloc[0]
             end = df['Close'].iloc[-1]
-            pct = (end - start) / start * 100.0
+            pct = (end - start)/start*100.0
             return {"start": float(start), "end": float(end), "pct_change": float(pct)}
         return jsonify({
             "left": {"symbol": left, "summary": summarize(dleft)},
@@ -266,12 +185,47 @@ def api_compare():
         traceback.print_exc()
         return jsonify({"error": str(e), "trace": trace_to_string()}), 400
 
-# app.py  (add this)
-@app.route("/compare")
-def compare_page():
-    """Renders the compare UI page."""
-    return render_template("compare.html")
+@app.route("/api/extras/<symbol>")
+def api_extras(symbol):
+    """
+    Returns { news: [...], _errors?: {...} }
+    Uses NewsAPI.org (NEWSAPI_KEY required in .env).
+    """
+    q_param = request.args.get("q", "")
+    company_q = q_param.strip() or symbol
+    results = {"news": []}
+    errors = {}
 
+    if NEWSAPI_KEY:
+        try:
+            params = {
+                "q": company_q,
+                "pageSize": 12,
+                "sortBy": "publishedAt",
+                "language": "en",
+                "apiKey": NEWSAPI_KEY
+            }
+            resp = requests.get("https://newsapi.org/v2/everything", params=params, timeout=12)
+            data = resp.json()
+            if resp.status_code == 200 and data.get("articles"):
+                for a in data.get("articles", [])[:12]:
+                    results["news"].append({
+                        "title": a.get("title"),
+                        "source": a.get("source", {}).get("name"),
+                        "url": a.get("url"),
+                        "publishedAt": a.get("publishedAt"),
+                        "description": a.get("description")
+                    })
+            else:
+                errors["newsapi"] = data.get("message") or data.get("status") or f"HTTP {resp.status_code}"
+        except Exception as e:
+            errors["newsapi"] = str(e)
+    else:
+        errors["newsapi"] = "NEWSAPI_KEY not set in .env"
+
+    if errors:
+        results["_errors"] = errors
+    return jsonify(results)
 
 if __name__ == "__main__":
     app.run(debug=True, host="127.0.0.1", port=5000)
